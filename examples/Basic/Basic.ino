@@ -1,5 +1,9 @@
-// AlashLogger: запись показаний в CSV на SD-карту (откроется в Excel и Google Таблицах).
-// SD-модуль: Uno: CS - 10, MOSI - 11, MISO - 12, SCK - 13, VCC 5 В. ESP32: CS - 5, MOSI - 23, MISO - 19, SCK - 18.
+// [ru] AlashLogger: запись показаний в CSV на SD-карту (откроется в Excel и Google Таблицах).
+//      SD-модуль: Uno: CS - 10, MOSI - 11, MISO - 12, SCK - 13, VCC 5 В. ESP32: CS - 5, MOSI - 23, MISO - 19, SCK - 18.
+// [kk] AlashLogger: көрсеткіштерді SD картадағы CSV-ға жазу (Excel және Google Кестелерінде ашылады).
+//      SD модулі: Uno: CS - 10, MOSI - 11, MISO - 12, SCK - 13, VCC 5 В. ESP32: CS - 5, MOSI - 23, MISO - 19, SCK - 18.
+// [en] AlashLogger: recording readings to a CSV on an SD card (opens in Excel and Google Sheets).
+//      SD module: Uno: CS - 10, MOSI - 11, MISO - 12, SCK - 13, VCC 5 V. ESP32: CS - 5, MOSI - 23, MISO - 19, SCK - 18.
 #include <AlashLogger.h>
 
 #if defined(ESP32)

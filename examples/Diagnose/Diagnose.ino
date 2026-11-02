@@ -1,4 +1,6 @@
-// AlashLogger: запись на SD не работает? Скетч проверит карту, создаст пробный файл и подскажет, что проверить.
+// [ru] AlashLogger: запись на SD не работает? Скетч проверит карту, создаст пробный файл и подскажет, что проверить.
+// [kk] AlashLogger: SD-ға жазу жұмыс істемей ме? Скетч картаны тексереді, сынақ файл жасайды және нені тексеру керегін айтады.
+// [en] AlashLogger: recording to the SD does not work? The sketch checks the card, creates a test file and tells what to check.
 #include <AlashLogger.h>
 
 #if defined(ESP32)

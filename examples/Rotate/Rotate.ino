@@ -1,5 +1,9 @@
-// AlashLogger: когда файл вырастает до 20 КБ, запись продолжается в новом файле (data.csv, data_1.csv, ...).
-// После перезапуска плата продолжает в последнем файле, ничего не стирается.
+// [ru] AlashLogger: когда файл вырастает до 20 КБ, запись продолжается в новом файле (data.csv, data_1.csv, ...).
+//      После перезапуска плата продолжает в последнем файле, ничего не стирается.
+// [kk] AlashLogger: файл 20 КБ-қа жеткенде жазу жаңа файлда жалғасады (data.csv, data_1.csv, ...).
+//      Қайта іске қосқаннан кейін тақта соңғы файлда жалғастырады, ештеңе өшірілмейді.
+// [en] AlashLogger: when the file grows to 20 KB, recording continues in a new file (data.csv, data_1.csv, ...).
+//      After a restart the board continues in the last file, nothing is erased.
 #include <AlashLogger.h>
 
 #if defined(ESP32)

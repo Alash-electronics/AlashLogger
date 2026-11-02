@@ -1,6 +1,6 @@
 {
   "name": "AlashLogger",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Easy CSV logger for SD cards: header, time, file rotation, safe flush, recovery, ru/kk/en tips, no dependencies",
   "keywords": "SD, logger, CSV, data logging, datalogger, file",
   "repository": {
