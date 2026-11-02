@@ -34,6 +34,7 @@ void loop() {
 - **CSV по правилам:** запятые и кавычки в тексте экранируются, `NAN` даёт пустую ячейку, числа с запятой не ломаются.
 - **Понятные подсказки** на трёх языках: `errorText()`, `diagnose(Serial)`.
 - Работает на **Arduino AVR, ESP32, ESP8266**.
+- **Excel без мучений:** `setSeparator(';', true)` для русских и казахских настроек Excel (разделитель `;` и запятая в числах). На ESP32 SD-модуль можно повесить на свои пины SPI: `begin(cs, spi)`.
 
 ### Подключение
 | Модуль SD | Uno / Nano | ESP32 |
@@ -55,7 +56,7 @@ void loop() {
 - Нет подсказок на казахском.
 
 ### Примеры
-`Basic`, `Rotate`, `CustomTime`, `Diagnose`
+`Basic`, `Rotate`, `CustomTime`, `Diagnose`, `ExcelRu`, `ESP32_CustomSPI`
 
 ### Тесты
 SD-карта в памяти (как на ESP32: FILE_WRITE стирает, FILE_APPEND дописывает) проверяет заголовок, форматы чисел, экранирование CSV, число значений, продолжение после перезапуска, ротацию без потери строк, сброс по таймеру, вынутую и вставленную карту, заполненную карту и слишком длинные строки: `extras/test`.
@@ -94,6 +95,7 @@ void loop() {
 - **CSV ережесімен:** үтір мен тырнақша қорғалады, `NAN` бос ұяшық.
 - **Түсінікті кеңестер** үш тілде: `errorText()`, `diagnose(Serial)`.
 - **Arduino AVR, ESP32, ESP8266**.
+- **Excel оңай:** орыс және қазақ Excel баптаулары үшін `setSeparator(';', true)` (бөлгіш `;` және сандағы үтір). ESP32-де SD модулін өз SPI пиндеріне қосуға болады: `begin(cs, spi)`.
 
 ### Қосу
 | SD модулі | Uno / Nano | ESP32 |
@@ -115,7 +117,7 @@ SdFat және `SD.open(FILE_WRITE)` скетчтерін қарадық:
 - Қазақша кеңестер жоқ.
 
 ### Мысалдар
-`Basic`, `Rotate`, `CustomTime`, `Diagnose`
+`Basic`, `Rotate`, `CustomTime`, `Diagnose`, `ExcelRu`, `ESP32_CustomSPI`
 
 ### Тесттер
 Жадтағы SD-карта тақырыпты, сан пішімдерін, CSV қорғауын, қайта қосудан кейінгі жалғасуды, ротацияны, таймер бойынша жазуды, картаны шығарып салуды тексереді: `extras/test`.
@@ -154,6 +156,7 @@ void loop() {
 - **Proper CSV:** commas and quotes in text are escaped, `NAN` gives an empty cell, floats never use a comma.
 - **Clear tips** in three languages: `errorText()`, `diagnose(Serial)`.
 - Works on **Arduino AVR, ESP32, ESP8266**.
+- **Easy Excel:** `setSeparator(';', true)` for Russian and Kazakh Excel settings (a `;` separator and a comma in numbers). On ESP32 the SD module can sit on its own SPI pins: `begin(cs, spi)`.
 
 ### Wiring
 | SD module | Uno / Nano | ESP32 |
@@ -175,7 +178,7 @@ We looked at SdFat and the popular sketches with `SD.open(FILE_WRITE)`:
 - No Kazakh tips.
 
 ### Examples
-`Basic`, `Rotate`, `CustomTime`, `Diagnose`
+`Basic`, `Rotate`, `CustomTime`, `Diagnose`, `ExcelRu`, `ESP32_CustomSPI`
 
 ### Tests
 An in-memory SD card (like on ESP32: FILE_WRITE erases, FILE_APPEND appends) checks the header, number formats, CSV escaping, value count, continuing after a restart, rotation without lost rows, timed flush, a pulled and re-inserted card, a full card and too long rows: `extras/test`.

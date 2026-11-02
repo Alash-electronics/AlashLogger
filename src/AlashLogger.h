@@ -5,6 +5,9 @@
 
 #include <Arduino.h>
 #include <SD.h>
+#if defined(ESP32)
+#include <SPI.h>
+#endif
 
 #ifndef ALASH_LOGGER_ROW
 #define ALASH_LOGGER_ROW 96        // длина одной строки CSV в байтах (память под буфер)
@@ -18,9 +21,15 @@ class AlashLogger {
 
   // csPin: вывод CS модуля SD. baseName: имя файла без расширения (на Arduino AVR до 6 символов): "log" даёт log.csv, log_1.csv...
   bool begin(uint8_t csPin, const char *baseName = "log");
+#if defined(ESP32)
+  // Модуль SD на других пинах SPI: SPIClass spiSd(HSPI); spiSd.begin(SCK, MISO, MOSI, CS); logger.begin(CS, spiSd, "log");
+  bool begin(uint8_t csPin, SPIClass &spi, const char *baseName = "log", uint32_t hz = 4000000UL);
+#endif
 
   // ---- Настройка ---------------------------------------------------------------
   void setColumns(const char *names);          // заголовок после времени: "temp,hum,lux"; число значений в строке будет проверяться
+  // Разделитель столбцов. Excel с русскими и казахскими региональными настройками ждёт ";" и десятичную запятую: setSeparator(';', true)
+  void setSeparator(char sep, bool decimalComma = false) { _sep = sep; _decComma = decimalComma; }
   void setTimeColumn(const char *name) { _timeName = name; }      // название первого столбца (по умолчанию "time")
   void setTimeProvider(TimeFn fn) { _timeFn = fn; }               // своё время (RTC, NTP); по умолчанию секунды с запуска
   void setMaxFileSize(uint32_t bytes) { _maxSize = bytes; }       // при превышении начнётся новый файл (0 = без ограничения)
@@ -53,6 +62,12 @@ class AlashLogger {
   char _row[ALASH_LOGGER_ROW];
   uint8_t _len = 0;
   bool _overflow = false, _open = false, _started = false, _dirty = false;
+  char _sep = ',';
+  bool _decComma = false;
+#if defined(ESP32)
+  SPIClass *_spi = nullptr;
+  uint32_t _hz = 4000000UL;
+#endif
   const char *_timeName = "time";
   char _header[48] = "";
   TimeFn _timeFn = nullptr;
@@ -64,6 +79,7 @@ class AlashLogger {
 
   void putCell(const char *s, bool quote);
   void startCell();
+  bool sdBegin();
   bool openFile();
   bool ensureHeader();
   void makeName();

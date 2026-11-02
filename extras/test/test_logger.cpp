@@ -152,6 +152,41 @@ int main() {
   printf("--- end ---\n");
   CHECK(!g_sd.files.count("alashtst.tmp"));
 
+  // 15) разделитель для Excel с русской / казахской локалью: ";" и десятичная запятая; заголовок, кавычки, ячейки с запятой
+  fresh(); AlashLogger X; X.setSeparator(';', true); X.setColumns("temp,hum,note"); X.begin(10, "x");
+  X.add(23.456f, 1); X.add(-0.04f, 2); X.add("a;b,c"); CHECK(X.save());
+  X.add(1.5f, 0); X.add(NAN); X.add("plain"); CHECK(X.save());
+  { std::string f = file("x.csv");
+    CHECK(f.rfind("time;temp;hum;note\n", 0) == 0);
+    CHECK(f.find(";23,5;-0,04;\"a;b,c\"\n") != std::string::npos);
+    CHECK(f.find(";2;;plain\n") != std::string::npos);                         // 1.5 без знаков после запятой даёт 2, NAN пустая ячейка
+    CHECK(f.find("5,000;") != std::string::npos || f.find("5,") != std::string::npos);   // время с запуска тоже с запятой
+    CHECK(f.find("23.5") == std::string::npos && lines(f) == 3); }
+  // запятая как десятичный знак при запятой-разделителе: число и время в кавычках, чтобы столбцы не поехали
+  fresh(); AlashLogger Y; Y.setSeparator(',', true); Y.setColumns("v"); Y.begin(10, "y");
+  Y.add(2.5f, 1); CHECK(Y.save());
+  CHECK(file("y.csv").find(",\"2,5\"\n") != std::string::npos && file("y.csv").find("\"5,000\",") != std::string::npos);
+  // по умолчанию всё как раньше: запятая и точка
+  fresh(); AlashLogger Z; Z.setColumns("v"); Z.begin(10, "z"); Z.add(2.5f, 1); CHECK(Z.save());
+  CHECK(file("z.csv").find("time,v\n") == 0 && file("z.csv").find(",2.5\n") != std::string::npos);
+  // своё время со своей запятой при разделителе-запятой оборачивается в кавычки
+  fresh(); AlashLogger W; W.setTimeProvider([](char *b, uint8_t n) { snprintf(b, n, "12:30, Mon"); }); W.begin(10, "w"); W.add(1); CHECK(W.save());
+  CHECK(file("w.csv").find("\"12:30, Mon\",1\n") != std::string::npos);
+  // ротация с другим разделителем сохраняет заголовок с ним
+  fresh(); AlashLogger R2; R2.setSeparator(';'); R2.setColumns("a,b"); R2.setMaxFileSize(40); R2.begin(10, "r");
+  for (int i = 0; i < 6; i++) { R2.add(i); R2.add(i * 2); CHECK(R2.save()); }
+  CHECK(R2.fileNumber() >= 1 && file("r_1.csv").rfind("time;a;b\n", 0) == 0);
+#ifdef ESP32
+  // 16) своя шина SPI: SD.begin получает её и частоту; повторная попытка после вынутой карты идёт по той же шине
+  fresh(); SPIClass hspi(2); AlashLogger H; CHECK(H.begin(15, hspi, "h", 8000000UL));
+  CHECK(g_sd.lastSpi == &hspi && g_sd.lastHz == 8000000UL && g_sd.lastCs == 15);
+  H.add(1); CHECK(H.save());
+  g_sd.card = false; g_ms += 3000; H.add(2); H.save();
+  g_sd.card = true; g_ms += 3000; g_sd.lastSpi = nullptr; H.add(3); CHECK(H.save() && g_sd.lastSpi == &hspi && g_sd.lastHz == 8000000UL);
+  fresh(); AlashLogger H2; CHECK(H2.begin(5, "h2") && g_sd.lastSpi == nullptr && g_sd.lastCs == 5);   // без своей шины: обычный SD.begin
+  fresh(); g_sd.card = false; AlashLogger H3; CHECK(!H3.begin(15, hspi, "h3") && H3.error() == AlashLogger::ERR_NO_CARD);
+#endif
+
   if (fails) { printf("FAILED: %d\n", fails); return 1; }
   printf("ALL TESTS PASSED\n");
   return 0;

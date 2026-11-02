@@ -11,6 +11,21 @@
 #define ALASH_OPEN_MODE FILE_WRITE
 #endif
 
+bool AlashLogger::sdBegin() {
+#if defined(ESP32)
+  if (_spi) return SD.begin(_cs, *_spi, _hz);
+#endif
+  return SD.begin(_cs);
+}
+
+#if defined(ESP32)
+bool AlashLogger::begin(uint8_t csPin, SPIClass &spi, const char *baseName, uint32_t hz) {
+  _spi = &spi;
+  _hz = hz;
+  return begin(csPin, baseName);
+}
+#endif
+
 bool AlashLogger::begin(uint8_t csPin, const char *baseName) {
   _cs = csPin;
   _err = ERR_OK;
@@ -28,7 +43,7 @@ bool AlashLogger::begin(uint8_t csPin, const char *baseName) {
     if (c == '/' || c == '.' || c == ' ' || c == '\\') { _err = ERR_NAME; return false; }
   }
   memcpy(_base, baseName, n + 1);
-  if (!SD.begin(_cs)) { _err = ERR_NO_CARD; return false; }
+  if (!sdBegin()) { _err = ERR_NO_CARD; return false; }
   _started = true;
   _lastFlush = millis();
   // продолжить в последнем существующем файле серии (после перезапуска не начинаем заново)
@@ -64,8 +79,8 @@ bool AlashLogger::openFile() {
 bool AlashLogger::ensureHeader() {
   if (_size != 0 || !_header[0]) return true;
   size_t w = _file.print(_timeName);
-  w += _file.print(',');
-  w += _file.print(_header);
+  w += _file.print(_sep);
+  for (const char *p = _header; *p; p++) w += _file.write((uint8_t)(*p == ',' ? _sep : *p));   // в setColumns() имена всегда через запятую
   w += _file.write((uint8_t)'\n');
   size_t total = strlen(_timeName) + 1 + strlen(_header) + 1;
   if (w < total) { _err = ERR_WRITE; _file.close(); _open = false; return false; }
@@ -84,7 +99,7 @@ bool AlashLogger::rotate() {
 }
 
 void AlashLogger::startCell() {
-  if (_len < sizeof(_row) - 1 && _cells > 0) _row[_len++] = ',';
+  if (_len < sizeof(_row) - 1 && _cells > 0) _row[_len++] = _sep;
   else if (_cells > 0) _overflow = true;
 }
 
@@ -105,7 +120,7 @@ void AlashLogger::putCell(const char *s, bool quote) {
 
 void AlashLogger::add(const char *text) {
   bool q = false;
-  for (const char *p = text; *p; p++) if (*p == ',' || *p == '"' || *p == '\n' || *p == '\r') q = true;
+  for (const char *p = text; *p; p++) if (*p == ',' || *p == _sep || *p == '"' || *p == '\n' || *p == '\r') q = true;
   putCell(text, q);
 }
 
@@ -133,12 +148,12 @@ void AlashLogger::add(float v, uint8_t decimals) {
   do { tmp[t++] = '0' + whole % 10; whole /= 10; } while (whole);
   while (t) b[i++] = tmp[--t];
   if (decimals) {
-    b[i++] = '.';
+    b[i++] = _decComma ? ',' : '.';
     for (int8_t d = decimals - 1; d >= 0; d--) { b[i + d] = '0' + frac % 10; frac /= 10; }
     i += decimals;
   }
   b[i] = 0;
-  putCell(b, false);
+  putCell(b, _decComma && decimals && _sep == ',');   // запятая внутри числа при запятой-разделителе: ячейку берём в кавычки
 }
 
 bool AlashLogger::save() {
@@ -151,17 +166,22 @@ bool AlashLogger::save() {
   if (!_open) {                                  // карта была вынута: раз в 2 секунды пробуем вернуться
     if (_lastRetry && millis() - _lastRetry < 2000) return false;
     _lastRetry = millis() ? millis() : 1;
-    if (!SD.begin(_cs)) { _err = ERR_NO_CARD; return false; }
+    if (!sdBegin()) { _err = ERR_NO_CARD; return false; }
     if (!openFile()) return false;
   }
-  char stamp[24];
-  if (_timeFn) { stamp[0] = 0; _timeFn(stamp, sizeof stamp); stamp[sizeof stamp - 1] = 0; }
-  else { uint32_t ms = millis(); snprintf(stamp, sizeof stamp, "%lu.%03u", (unsigned long)(ms / 1000), (unsigned)(ms % 1000)); }
+  char stamp[26];
+  if (_timeFn) { stamp[0] = 0; _timeFn(stamp, 24); stamp[23] = 0; }
+  else { uint32_t ms = millis(); snprintf(stamp, 24, "%lu%c%03u", (unsigned long)(ms / 1000), _decComma ? ',' : '.', (unsigned)(ms % 1000)); }
+  if (_sep == ',' && strchr(stamp, ',')) {      // время со своей запятой при запятой-разделителе: в кавычки
+    size_t n = strlen(stamp);
+    memmove(stamp + 1, stamp, n);
+    stamp[0] = '"'; stamp[n + 1] = '"'; stamp[n + 2] = 0;
+  }
   size_t total = strlen(stamp) + (len ? 1 : 0) + len + 1;
   if (_maxSize && _size + total > _maxSize && _size > 0 && !rotate()) return false;
   if (!ensureHeader()) return false;
   size_t w = _file.print(stamp);
-  if (len) { w += _file.print(','); w += _file.write((const uint8_t *)_row, len); }
+  if (len) { w += _file.print(_sep); w += _file.write((const uint8_t *)_row, len); }
   w += _file.write((uint8_t)'\n');
   if (w < total) { _err = ERR_WRITE; _file.close(); _open = false; return false; }
   _size += total;

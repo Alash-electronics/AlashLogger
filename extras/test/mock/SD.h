@@ -4,6 +4,9 @@
 #include <memory>
 #include <string>
 #include "Arduino.h"
+#ifdef ESP32
+#include "SPI.h"
+#endif
 #define FILE_READ 0
 #define FILE_WRITE 1
 #define FILE_APPEND 2
@@ -11,6 +14,7 @@ struct SimSd {
   bool card = true; size_t capacity = 1u << 30; bool readOnly = false;
   std::map<std::string, std::string> files;
   int begins = 0, flushes = 0, opens = 0;
+  const void *lastSpi = nullptr; uint32_t lastHz = 0; uint8_t lastCs = 0;
   size_t used() const { size_t n = 0; for (auto &f : files) n += f.second.size(); return n; }
 };
 inline SimSd g_sd;
@@ -34,7 +38,10 @@ class File : public Print {
 };
 class SDClass {
  public:
-  bool begin(uint8_t = 10) { if (!g_sd.card) return false; g_sd.begins++; return true; }
+  bool begin(uint8_t cs = 10) { g_sd.lastCs = cs; g_sd.lastSpi = nullptr; if (!g_sd.card) return false; g_sd.begins++; return true; }
+#ifdef ESP32
+  bool begin(uint8_t cs, SPIClass &spi, uint32_t hz = 4000000) { g_sd.lastCs = cs; g_sd.lastSpi = &spi; g_sd.lastHz = hz; if (!g_sd.card) return false; g_sd.begins++; return true; }
+#endif
   bool exists(const char *n) { return g_sd.files.count(n) > 0; }
   bool remove(const char *n) { return g_sd.files.erase(n) > 0; }
   File open(const char *n, int mode = FILE_READ) {

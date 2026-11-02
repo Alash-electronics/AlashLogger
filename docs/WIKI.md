@@ -53,6 +53,7 @@ void loop() {
 - **CSV по правилам:** запятые и кавычки в тексте экранируются, `NAN` даёт пустую ячейку, числа с запятой не ломаются.
 - **Понятные подсказки** на трёх языках: `errorText()`, `diagnose(Serial)`.
 - Работает на **Arduino AVR, ESP32, ESP8266**.
+- **Excel без мучений:** `setSeparator(';', true)` для русских и казахских настроек Excel (разделитель `;` и запятая в числах). На ESP32 SD-модуль можно повесить на свои пины SPI: `begin(cs, spi)`.
 
 ### Справочник по методам
 | Метод | Что делает |
@@ -66,6 +67,8 @@ void loop() {
 | `setFlushEvery(ms)` | Как часто сбрасывать на карту |
 | `flush() / close()` | Сбросить / закрыть |
 | `diagnose(Serial)` | Самопроверка |
+| `setSeparator(sep, decimalComma)` | Разделитель столбцов и запятая в числах (для Excel в русской локали) |
+| `begin(cs, spi, name, hz)` | ESP32: SD на своей шине SPI |
 
 ### Если что-то не работает
 **SD-карта не найдена**
@@ -80,11 +83,15 @@ void loop() {
 
 Excel с русской локалью ждёт точку с запятой. Откройте через Данные, Из текста, разделитель запятая, или используйте Google Таблицы.
 
+**Excel открывает всё в одном столбце, числа как текст**
+
+Это русские региональные настройки Excel: ждёт `;` и запятую в числах. Вызовите `logger.setSeparator(';', true);` до `begin()` (пример ExcelRu).
+
 ### Самопроверка
 В библиотеке есть `diagnose(Serial)`: она печатает, что видит плата, и подсказывает, что проверить. Язык подсказок: `setLanguage(LANG_RU / LANG_KK / LANG_EN)`.
 
 ### Примеры
-`Basic`, `Rotate`, `CustomTime`, `Diagnose`
+`Basic`, `Rotate`, `CustomTime`, `Diagnose`, `ExcelRu`, `ESP32_CustomSPI`
 
 ---
 
@@ -137,6 +144,7 @@ void loop() {
 - **CSV ережесімен:** үтір мен тырнақша қорғалады, `NAN` бос ұяшық.
 - **Түсінікті кеңестер** үш тілде: `errorText()`, `diagnose(Serial)`.
 - **Arduino AVR, ESP32, ESP8266**.
+- **Excel оңай:** орыс және қазақ Excel баптаулары үшін `setSeparator(';', true)` (бөлгіш `;` және сандағы үтір). ESP32-де SD модулін өз SPI пиндеріне қосуға болады: `begin(cs, spi)`.
 
 ### Әдістер анықтамасы
 | Әдіс | Не істейді |
@@ -150,6 +158,8 @@ void loop() {
 | `setFlushEvery(ms)` | Қаншалықты жиі жазу |
 | `flush() / close()` | Жазу / жабу |
 | `diagnose(Serial)` | Өзін тексеру |
+| `setSeparator(sep, decimalComma)` | Баған бөлгіші және сандағы үтір (орыс Excel үшін) |
+| `begin(cs, spi, name, hz)` | ESP32: SD өз SPI шинасында |
 
 ### Бірдеңе жұмыс істемесе
 **SD-карта табылмады**
@@ -164,11 +174,15 @@ MOSI, MISO, SCK, CS, қуат және пішімді тексеріңіз.
 
 Деректер, Мәтіннен, үтір бөлгіші арқылы ашыңыз.
 
+**Excel бәрін бір бағанда ашады, сандар мәтін болады**
+
+Бұл Excel-дің орыс аймақтық баптаулары: `;` және сандағы үтір керек. `begin()` алдында `logger.setSeparator(';', true);` шақырыңыз (ExcelRu мысалы).
+
 ### Өзін-өзі тексеру
 Кітапханада `diagnose(Serial)` бар: тақта не көргенін басып шығарады және нені тексеру керегін айтады. Кеңес тілі: `setLanguage(LANG_RU / LANG_KK / LANG_EN)`.
 
 ### Мысалдар
-`Basic`, `Rotate`, `CustomTime`, `Diagnose`
+`Basic`, `Rotate`, `CustomTime`, `Diagnose`, `ExcelRu`, `ESP32_CustomSPI`
 
 ---
 
@@ -221,6 +235,7 @@ void loop() {
 - **Proper CSV:** commas and quotes in text are escaped, `NAN` gives an empty cell, floats never use a comma.
 - **Clear tips** in three languages: `errorText()`, `diagnose(Serial)`.
 - Works on **Arduino AVR, ESP32, ESP8266**.
+- **Easy Excel:** `setSeparator(';', true)` for Russian and Kazakh Excel settings (a `;` separator and a comma in numbers). On ESP32 the SD module can sit on its own SPI pins: `begin(cs, spi)`.
 
 ### Method reference
 | Method | What it does |
@@ -234,6 +249,8 @@ void loop() {
 | `setFlushEvery(ms)` | How often to flush |
 | `flush() / close()` | Flush / close |
 | `diagnose(Serial)` | Self-check |
+| `setSeparator(sep, decimalComma)` | Column separator and decimal comma (for Excel in a Russian locale) |
+| `begin(cs, spi, name, hz)` | ESP32: SD on your own SPI bus |
 
 ### If something does not work
 **SD card not found**
@@ -248,11 +265,15 @@ Data is flushed every 5 seconds. Call `flush()` before power off, and use `setFl
 
 A Russian-locale Excel expects a semicolon. Open it with Data, From Text, comma separator, or use Google Sheets.
 
+**Excel puts everything in one column, numbers as text**
+
+That is Excel with Russian regional settings: it expects `;` and a comma in numbers. Call `logger.setSeparator(';', true);` before `begin()` (the ExcelRu example).
+
 ### Self-check
 The library has `diagnose(Serial)`: it prints what the board sees and tells what to check. Tips language: `setLanguage(LANG_RU / LANG_KK / LANG_EN)`.
 
 ### Examples
-`Basic`, `Rotate`, `CustomTime`, `Diagnose`
+`Basic`, `Rotate`, `CustomTime`, `Diagnose`, `ExcelRu`, `ESP32_CustomSPI`
 
 ---
 
